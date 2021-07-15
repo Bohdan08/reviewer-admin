@@ -4,12 +4,9 @@ import { Container, Form, Button, Alert } from "react-bootstrap";
 import { API_STATUS } from "./constants";
 
 AWS.config.update({
-  accessKeyId: process.env.REACT_APP_ACCESS_KEY_ID,
-  secretAccessKey: process.env.REACT_APP_SECRET_ACCESS_KEY,
-});
-
-const myBucket = new AWS.S3({
-  params: { Bucket: process.env.REACT_APP_S3_BUCKET },
+  credentials: new AWS.CognitoIdentityCredentials({
+    IdentityPoolId: process.env.REACT_APP_IDENTITY_POOL,
+  }),
   region: process.env.REACT_APP_REGION,
 });
 
@@ -19,34 +16,38 @@ const App = () => {
   const [uploadedFileMessage, setUploadedFileMessage] = useState(null);
 
   const handleFileInput = (event) => {
+    setUploadedFileStatus(API_STATUS.IDLE);
     setUploadedFileMessage(null);
     setSelectedFile(event.target.files[0]);
   };
 
   const s3Upload = (file) => {
-    const params = {
-      ACL: "public-read",
-      Body: file,
-      Bucket: process.env.REACT_APP_S3_BUCKET,
-      Key: file.name,
-    };
+    try {
+      let upload = new AWS.S3.ManagedUpload({
+        params: {
+          Body: file,
+          Bucket: process.env.REACT_APP_S3_BUCKET,
+          Key: file.name,
+        },
+      });
 
-    myBucket
-      .putObject(params)
-      .on("httpUploadProgress", (currentProgress) => {
-        const { loaded, total } = currentProgress;
-        if (loaded < total) {
-          setUploadedFileStatus(API_STATUS.LOADING);
-        } else if (loaded === total) {
+      let promise = upload.promise();
+
+      promise.then(
+        () => {
           setUploadedFileStatus(API_STATUS.SUCCESS);
-        }
-      })
-      .send((error) => {
-        if (error) {
+          // alert("Successfully uploaded file.");
+        },
+        (error) => {
           setUploadedFileStatus(API_STATUS.ERROR);
           setUploadedFileMessage(error);
         }
-      });
+      );
+    } catch (error) {
+      console.log(error, "error");
+      setUploadedFileStatus(API_STATUS.ERROR);
+      setUploadedFileMessage(error);
+    }
   };
 
   return (
