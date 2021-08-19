@@ -27,7 +27,8 @@ const App = () => {
         params: {
           Body: file,
           Bucket: process.env.REACT_APP_S3_BUCKET,
-          Key: file.name,
+          // Key: file.name,
+          Key: `import_${new Date().toISOString().slice(0, 10)}`,
         },
       });
 
