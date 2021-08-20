@@ -22,13 +22,19 @@ const App = () => {
   };
 
   const s3Upload = (file) => {
+    const fileFormat = file.name.slice(file.name.length - 3, file.name.length);
+    const currentDate = new Date()
+      .toISOString()
+      .replace("T", "_")
+      .substr(0, 19);
+
     try {
       let upload = new AWS.S3.ManagedUpload({
         params: {
           Body: file,
           Bucket: process.env.REACT_APP_S3_BUCKET,
           // Key: file.name,
-          Key: `import_${new Date().toISOString().slice(0, 10)}`,
+          Key: `import_${currentDate}.${fileFormat}`,
         },
       });
 
