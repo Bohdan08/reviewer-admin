@@ -23,10 +23,7 @@ const App = () => {
 
   const s3Upload = (file) => {
     const fileFormat = file.name.slice(file.name.length - 3, file.name.length);
-    const currentDate = new Date()
-      .toISOString()
-      .replace("T", "_")
-      .substr(0, 19);
+    const currentDate = new Date().toISOString().replaceAll('T', '').replaceAll(/\D/g,'').substr(0, 14)
 
     try {
       let upload = new AWS.S3.ManagedUpload({
