@@ -1,5 +1,6 @@
 import { useState } from "react";
 import AWS from "aws-sdk";
+import { useAuth0 } from "@auth0/auth0-react";
 import { Container, Form, Button, Alert } from "react-bootstrap";
 import { API_STATUS } from "./constants";
 
@@ -20,6 +21,8 @@ const App = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadedFileStatus, setUploadedFileStatus] = useState(null);
   const [uploadedFileMessage, setUploadedFileMessage] = useState(null);
+
+  const { isAuthenticated, loginWithRedirect } = useAuth0();
 
   const handleFileInput = (event) => {
     setUploadedFileStatus(API_STATUS.IDLE);
@@ -76,16 +79,34 @@ const App = () => {
 
       <Container className="d-flex flex-column justify-content-center h-100">
         <Form className="m-auto">
-          <input type="file" onChange={handleFileInput} accept=".csv, .xml" />
-          <Button
-            disabled={!selectedFile}
-            variant="primary"
-            type="button"
-            className="w-100 mt-4"
-            onClick={() => selectedFile && s3Upload(selectedFile)}
-          >
-            Upload
-          </Button>
+          {isAuthenticated ? (
+            <>
+              {" "}
+              <input
+                type="file"
+                onChange={handleFileInput}
+                accept=".csv, .xml"
+              />
+              <Button
+                disabled={!selectedFile}
+                variant="primary"
+                type="button"
+                className="w-100 mt-4"
+                onClick={() => selectedFile && s3Upload(selectedFile)}
+              >
+                Upload
+              </Button>{" "}
+            </>
+          ) : (
+            <Button
+              variant="primary"
+              className="w-100 mt-4"
+              style={{ minWidth: "200px" }}
+              onClick={() => loginWithRedirect()}
+            >
+              Log In
+            </Button>
+          )}
         </Form>
       </Container>
     </>
