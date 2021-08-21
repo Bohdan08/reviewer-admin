@@ -55,13 +55,11 @@ const App = () => {
         }
       );
     } catch (error) {
-      console.log(error, "error");
       setUploadedFileStatus(API_STATUS.ERROR);
       setUploadedFileMessage(error);
     }
   };
 
-  console.log(selectedFile, "selectedFile");
   return (
     <>
       <div className="position-absolute message-info mt-5">
