@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AWS from "aws-sdk";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useAuth0, withAuth0 } from "@auth0/auth0-react";
 import { Container, Form, Button, Alert } from "react-bootstrap";
 import { API_STATUS } from "./constants";
 
@@ -21,8 +21,13 @@ const App = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadedFileStatus, setUploadedFileStatus] = useState(null);
   const [uploadedFileMessage, setUploadedFileMessage] = useState(null);
-
-  const { isAuthenticated, loginWithRedirect } = useAuth0();
+  const {
+    isAuthenticated,
+    loginWithRedirect,
+    isLoading,
+    user,
+    logout,
+  } = useAuth0();
 
   const handleFileInput = (event) => {
     setUploadedFileStatus(API_STATUS.IDLE);
@@ -63,6 +68,14 @@ const App = () => {
     }
   };
 
+  useEffect(() => {
+    (async function login() {
+      if (!isLoading && !user) {
+        await loginWithRedirect();
+      }
+    })();
+  }, [isLoading]); // eslint-disable-line
+
   return (
     <>
       <div className="position-absolute message-info mt-5">
@@ -96,16 +109,27 @@ const App = () => {
               >
                 Upload
               </Button>{" "}
+              <Button
+                id="login-button"
+                variant="danger"
+                className="w-100 mt-4"
+                onClick={() => logout({ returnTo: window.location.origin })}
+              >
+                Log Out
+              </Button>
             </>
           ) : (
-            <Button
-              variant="primary"
-              className="w-100 mt-4"
-              style={{ minWidth: "200px" }}
-              onClick={() => loginWithRedirect()}
-            >
-              Log In
-            </Button>
+            <>
+              {/* <Button
+                id="login-button"
+                variant="primary"
+                className="w-100 mt-4"
+                style={{ minWidth: "200px" }}
+                onClick={() => loginWithRedirect()}
+              >
+                Log In
+              </Button> */}
+            </>
           )}
         </Form>
       </Container>
@@ -113,4 +137,4 @@ const App = () => {
   );
 };
 
-export default App;
+export default withAuth0(App);
