@@ -17,3 +17,8 @@ body {
   left: 50%; /* position the left edge of the element at the middle of the parent */
   transform: translateX(-50%);
 }
+
+button:disabled {
+  cursor: not-allowed;
+  pointer-events: all !important;
+}

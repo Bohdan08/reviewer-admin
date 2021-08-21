@@ -10,6 +10,12 @@ AWS.config.update({
   region: process.env.REACT_APP_REGION,
 });
 
+const currentDate = new Date()
+  .toISOString()
+  .replaceAll("T", "")
+  .replaceAll(/\D/g, "")
+  .substr(0, 14);
+
 const App = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadedFileStatus, setUploadedFileStatus] = useState(null);
@@ -22,8 +28,9 @@ const App = () => {
   };
 
   const s3Upload = (file) => {
-    const fileFormat = file.name.slice(file.name.length - 3, file.name.length);
-    const currentDate = new Date().toISOString().replaceAll('T', '').replaceAll(/\D/g,'').substr(0, 14)
+    const fileFormat = file
+      ? file.name.slice(file.name.length - 3, file.name.length)
+      : "";
 
     try {
       let upload = new AWS.S3.ManagedUpload({
@@ -54,6 +61,7 @@ const App = () => {
     }
   };
 
+  console.log(selectedFile, "selectedFile");
   return (
     <>
       <div className="position-absolute message-info mt-5">
@@ -70,12 +78,13 @@ const App = () => {
 
       <Container className="d-flex flex-column justify-content-center h-100">
         <Form className="m-auto">
-          <input type="file" onChange={handleFileInput} />
+          <input type="file" onChange={handleFileInput} accept=".csv, .xml" />
           <Button
+            disabled={!selectedFile}
             variant="primary"
             type="button"
             className="w-100 mt-4"
-            onClick={() => s3Upload(selectedFile)}
+            onClick={() => selectedFile && s3Upload(selectedFile)}
           >
             Upload
           </Button>
