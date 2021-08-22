@@ -11,12 +11,6 @@ AWS.config.update({
   region: process.env.REACT_APP_REGION,
 });
 
-const currentDate = new Date()
-  .toISOString()
-  .replaceAll("T", "")
-  .replaceAll(/\D/g, "")
-  .substr(0, 14);
-
 const App = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadedFileStatus, setUploadedFileStatus] = useState(null);
@@ -34,6 +28,12 @@ const App = () => {
     setUploadedFileMessage(null);
     setSelectedFile(event.target.files[0]);
   };
+
+  const currentDate = new Date()
+    .toISOString()
+    .replace("T", "")
+    .replace(/\D/g, "")
+    .substr(0, 14);
 
   const s3Upload = (file) => {
     const fileFormat = file
