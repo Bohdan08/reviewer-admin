@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import AWS from "aws-sdk";
 import { useAuth0, withAuth0 } from "@auth0/auth0-react";
 import { Container, Form, Button, Alert } from "react-bootstrap";
-import { API_STATUS } from "./constants";
+import { API_STATUS, CLIENT_API } from "./constants";
 
 AWS.config.update({
   credentials: new AWS.CognitoIdentityCredentials({
@@ -22,6 +22,8 @@ const App = () => {
     user,
     logout,
   } = useAuth0();
+  const [bucketName, setBucketName] = useState(null);
+  const [bucketNameError, setBucketNameError] = useState(null);
 
   const handleFileInput = (event) => {
     setUploadedFileStatus(API_STATUS.IDLE);
@@ -44,7 +46,7 @@ const App = () => {
       let upload = new AWS.S3.ManagedUpload({
         params: {
           Body: file,
-          Bucket: process.env.REACT_APP_S3_BUCKET,
+          Bucket: bucketName,
           // Key: file.name,
           Key: `import_${currentDate}.${fileFormat}`,
         },
@@ -76,6 +78,19 @@ const App = () => {
     })();
   }, [isLoading]); // eslint-disable-line
 
+  useEffect(() => {
+    if (isAuthenticated && bucketName === null) {
+      fetch(`${process.env.REACT_APP_BASE_URL}${CLIENT_API}`, {
+        method: "GET",
+      })
+        .then((res) => res.json())
+        .then(({ data: { uname } }) =>
+          setBucketName(`${process.env.REACT_APP_S3_BUCKET}/${uname}`)
+        )
+        .catch((error) => setBucketNameError(error));
+    }
+  }, [isAuthenticated, bucketName]);
+
   return (
     <>
       <div className="position-absolute message-info mt-5">
@@ -87,6 +102,8 @@ const App = () => {
           </Alert>
         ) : uploadedFileStatus === API_STATUS.ERROR ? (
           <div>{uploadedFileMessage}</div>
+        ) : bucketNameError ? (
+          <div>{bucketNameError}</div>
         ) : null}
       </div>
 
