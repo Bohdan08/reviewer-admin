@@ -87,7 +87,9 @@ const App = () => {
         .then(({ data: { uname } }) =>
           setBucketName(`${process.env.REACT_APP_S3_BUCKET}/${uname}`)
         )
-        .catch((error) => setBucketNameError(error));
+        .catch((error) =>
+          setBucketNameError(`Bucket path error: ${error.message}`)
+        );
     }
   }, [isAuthenticated, bucketName]);
 
@@ -101,9 +103,9 @@ const App = () => {
             A chosen file has been successfully uploaded to S3
           </Alert>
         ) : uploadedFileStatus === API_STATUS.ERROR ? (
-          <div>{uploadedFileMessage}</div>
+          <Alert varian="danger">{uploadedFileMessage}</Alert>
         ) : bucketNameError ? (
-          <div>{bucketNameError}</div>
+          <Alert variant="danger">{bucketNameError}</Alert>
         ) : null}
       </div>
 
