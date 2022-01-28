@@ -22,3 +22,16 @@ button:disabled {
   cursor: not-allowed;
   pointer-events: all !important;
 }
+
+.header {
+  height: 70px;
+}
+
+.nav-logo {
+  width: 150px;
+  height: 40px;
+}
+
+.main-container {
+  height: calc(100vh - 70px);
+}
