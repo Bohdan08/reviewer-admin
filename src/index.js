@@ -10,8 +10,6 @@ import "./index.scss";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const onRedirectCallback = (appState) => {
-  console.log(appState, "appState", window.location.pathname);
-  console.log(window.location.origin, "window.location.origin");
   history.push(
     appState && appState.returnTo ? appState.returnTo : window.location.pathname
   );
