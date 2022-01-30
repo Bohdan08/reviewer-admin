@@ -37,7 +37,7 @@ const App = () => {
     })();
   }, [isLoading, user]); // eslint-disable-line
 
-  console.log(isAuthenticated, "isAuthenticated");
+  // console.log(isAuthenticated, "isAuthenticated");
   // console.log(user, "user");
 
   // console.log(user, "activeNav", isLoading);
