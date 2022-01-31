@@ -1,6 +1,6 @@
 /* Shared values */
 
-export const CLIENT_API = "/client";
+export const CLIENTS_API = "/admin/clients";
 
 export const API_STATUS = {
   IDLE: "idle",

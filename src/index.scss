@@ -13,8 +13,13 @@ body {
   height: 100vh;
 }
 
-.message-info {
-  left: 50%; /* position the left edge of the element at the middle of the parent */
+.upload-form-status-container button {
+  top: -3px !important;
+}
+
+.center-vertically-block {
+  position: absolute;
+  left: 50%;
   transform: translateX(-50%);
 }
 
