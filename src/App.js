@@ -50,6 +50,47 @@ const App = () => {
   const [clientsError, setClientsError] = useState(false);
   const [loadingClients, setLoadingClients] = useState(false);
 
+  async function getClientsData() {
+    setLoadingClients(true);
+    const tokenAccess = await getAccessTokenSilently();
+    const userInfo = await getIdTokenClaims();
+
+    if (tokenAccess && userInfo) {
+      const options = {
+        method: "GET",
+        headers: {
+          Authorization: userInfo?.__raw,
+          // Authorization: "",
+        },
+      };
+
+      fetch(`${process.env.REACT_APP_BASE_URL}${CLIENTS_API}`, options)
+        .then((res) => res.json())
+        .then((results) => {
+          const { data, status, message, statusCode } = results;
+
+          if (status !== 200 && statusCode !== 200) {
+            setClientsError(`Clients error: ${message}`);
+            setLoadingClients(false);
+            return;
+          }
+
+          setLoadingClients(false);
+          setClientsInfo(data);
+
+          // set clients to the local storage
+          localStorage.setItem("clientsInfo", JSON.stringify(data));
+        })
+        .catch((error) => {
+          setLoadingClients(false);
+          setClientsError(`Clients error: ${error.message}`);
+        });
+    } else {
+      setLoadingClients(false);
+      setClientsError(`Clients error: token is invalid`);
+    }
+  }
+
   useEffect(() => {
     (async function login() {
       if (!isLoading && !user) {
@@ -60,45 +101,14 @@ const App = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      async function getClientsData() {
-        setLoadingClients(true);
-        const tokenAccess = await getAccessTokenSilently();
-        const userInfo = await getIdTokenClaims();
+      // fetch clients from the local storage
+      const clientsInfoInLocalStorage = localStorage.getItem("clientsInfo");
 
-        if (tokenAccess && userInfo) {
-          const options = {
-            method: "GET",
-            headers: {
-              Authorization: userInfo?.__raw,
-              // Authorization: "",
-            },
-          };
-
-          fetch(`${process.env.REACT_APP_BASE_URL}${CLIENTS_API}`, options)
-            .then((res) => res.json())
-            .then((results) => {
-              const { data, status, message, statusCode } = results;
-
-              if (status !== 200 && statusCode !== 200) {
-                setClientsError(`Clients error: ${message}`);
-                setLoadingClients(false);
-                return;
-              }
-
-              setLoadingClients(false);
-              setClientsInfo(data);
-            })
-            .catch((error) => {
-              setLoadingClients(false);
-              setClientsError(`Clients error: ${error.message}`);
-            });
-        } else {
-          setLoadingClients(false);
-          setClientsError(`Clients error: token is invalid`);
-        }
+      if (clientsInfoInLocalStorage) {
+        setClientsInfo(JSON.parse(clientsInfoInLocalStorage));
+      } else {
+        getClientsData();
       }
-
-      getClientsData();
     }
   }, [isAuthenticated]); // eslint-disable-line
 
@@ -127,7 +137,10 @@ const App = () => {
               <Nav.Item>
                 <Button
                   className="bg-transparent border-0"
-                  onClick={() => logout({ returnTo: window.location.origin })}
+                  onClick={() => {
+                    logout({ returnTo: window.location.origin });
+                    localStorage.removeItem("clientsInfo");
+                  }}
                 >
                   Log out
                 </Button>
