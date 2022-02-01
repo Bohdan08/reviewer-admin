@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth0, withAuth0 } from "@auth0/auth0-react";
-import { Routes, Route, Link } from "react-router-dom";
+import { Routes, Route, Link, Navigate } from "react-router-dom";
 import {
   Container,
   Nav,
@@ -11,7 +11,7 @@ import {
   Spinner,
 } from "react-bootstrap";
 import UploadForm from "./ Components/UploadForm";
-// import CustomerTable from "./ Components/CustomerTable";
+import ClientsTable from "./ Components/ClientsTable";
 import { CLIENTS_API } from "./constants";
 
 // assets
@@ -22,16 +22,16 @@ const NAV_ITEMS = [
     key: "uploadForm",
     name: "Upload a File",
     link: "/",
-    exact: true,
-    Component: UploadForm,
+    // exact: true,
+    // Component: UploadForm,
   },
-  // {
-  //   key: "customerTable",
-  //   name: "Customers Info",
-  //   link: "/customers",
-  //   exact: false,
-  //   Component: CustomerTable,
-  // },
+  {
+    key: "customerTable",
+    name: "Clients",
+    link: "/clients",
+    // exact: false,
+    // Component: ClientsTable,
+  },
 ];
 
 const App = () => {
@@ -179,10 +179,11 @@ const App = () => {
                 path="/"
                 element={<UploadForm clientsInfo={clientsInfo} />}
               />
-              {/* <Route
-                path="/customers"
-                element={<CustomerTable clientsInfo={clientsInfo} />}
-              /> */}
+              <Route
+                path="/clients"
+                element={<ClientsTable clientsInfo={clientsInfo} />}
+              />
+              <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           )}
         </Container>
