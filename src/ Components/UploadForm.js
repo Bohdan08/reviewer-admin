@@ -112,11 +112,29 @@ const UploadForm = ({ clientsInfo }) => {
                 ))}
               </Form.Select>
               <Form.Group className="my-3 ml-1" controlId="formBasicCheckbox">
-                <Form.Check
+                <p className="fs-5 mb-2"> Direct link?</p>
+                <div className="mb-1">
+                  <Form.Check
+                    type="radio"
+                    label="Yes"
+                    checked={directPath}
+                    onChange={() => setDirectPath(true)}
+                  />
+                </div>
+                <div className="mb-1">
+                  <Form.Check
+                    type="radio"
+                    label="No"
+                    checked={!directPath}
+                    onChange={() => setDirectPath(false)}
+                  />
+                </div>
+
+                {/* <Form.Check
                   type="checkbox"
                   label="Direct"
                   onChange={() => setDirectPath(!directPath)}
-                />
+                /> */}
               </Form.Group>
               <input
                 ref={inputFileRef}
