@@ -11,7 +11,8 @@ import {
   Spinner,
 } from "react-bootstrap";
 import UploadForm from "./ Components/UploadForm";
-import ClientsTable from "./ Components/ClientsTable";
+import ClientsTable from "./ Components/TableView/ClientsTable";
+import SelectedClientTable from "./ Components/TableView/SelectedClientTable";
 import { CLIENTS_API } from "./constants";
 
 // assets
@@ -150,9 +151,9 @@ const App = () => {
         </Navbar>
       </header>
       <main className="main-container">
-        <Container>
+        <Container className="mt-5">
           {isLoading ? (
-            <div className="mt-5 center-vertically-block">
+            <div className="center-vertically-block">
               <Spinner
                 className="d-flex m-auto"
                 animation="border"
@@ -161,7 +162,7 @@ const App = () => {
               <p className="pt-3">Loading user...</p>
             </div>
           ) : loadingClients ? (
-            <div className="mt-5 center-vertically-block">
+            <div className="center-vertically-block">
               <Spinner
                 className="d-flex m-auto"
                 animation="border"
@@ -170,19 +171,21 @@ const App = () => {
               <p className="pt-3">Loading clients info...</p>
             </div>
           ) : clientsError ? (
-            <div className="mt-5 center-vertically-block">
+            <div className="center-vertically-block">
               <Alert variant="danger">{clientsError}</Alert>
             </div>
           ) : (
             <Routes>
+              <Route index element={<UploadForm clientsInfo={clientsInfo} />} />
               <Route
-                path="/"
-                element={<UploadForm clientsInfo={clientsInfo} />}
-              />
-              <Route
-                path="/clients"
+                path="clients"
                 element={<ClientsTable clientsInfo={clientsInfo} />}
               />
+              <Route
+                path="clients/:selectedClient"
+                element={<SelectedClientTable clientsInfo={clientsInfo} />}
+              />
+
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           )}

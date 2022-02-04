@@ -8,3 +8,8 @@ export const API_STATUS = {
   ERROR: "error",
   SUCCESS: "success",
 };
+
+export const CLINIC_NAME_BY_UNAME = {
+  accuro: "Wilderman Medical Clinic",
+  cosmetic: "Wilderman Cosmetic Clinic",
+};

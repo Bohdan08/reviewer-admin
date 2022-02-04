@@ -98,7 +98,7 @@ const UploadForm = ({ clientsInfo }) => {
   return (
     <div id="uploadform" className="d-flex justify-content-center h-100">
       <Container className="d-flex flex-column justify-content-center h-100">
-        <h2 className="text-center py-5"> Upload a file </h2>
+        <h2 className="text-center pb-5"> Upload a file </h2>
         <Form className="m-auto">
           {clientsInfo && (
             <>
