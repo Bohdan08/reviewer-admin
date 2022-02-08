@@ -1,4 +1,4 @@
-import { UploadFrom, ClientsTable, SelectedClientTable } from "../Views";
+import { UploadFrom, ClientsTable, SelectedClientTable } from "../views";
 
 const routes = [
   { path: "/", index: true, label: "Upload Form", Component: UploadFrom },
