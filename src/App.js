@@ -11,11 +11,10 @@ import {
   Spinner,
 } from "react-bootstrap";
 import { CLIENTS_API } from "./constants";
+import Page from "./navigation/Page";
 
 // assets
 import logo from "./assets/logo.png";
-import Page from "./navigation/Page";
-// import routes from "./routes";
 
 const NAV_ITEMS = [
   {
@@ -174,7 +173,7 @@ const App = ({ routes }) => {
               {routes.map((route) => {
                 return (
                   <Route
-                    index={route.index}
+                    index={route.index || false}
                     path={route.path}
                     element={<Page route={route} clientsInfo={clientsInfo} />}
                   />
