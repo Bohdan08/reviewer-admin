@@ -42,7 +42,7 @@ const UploadForm = ({ clientsInfo }) => {
   const [uploadedFileStatus, setUploadedFileStatus] = useState(null);
   const [uploadedFileMessage, setUploadedFileMessage] = useState(null);
   const [selectedClient, setSelectedClient] = useState("");
-  const [directPath, setDirectPath] = useState(false);
+  const [directPath, setDirectPath] = useState(undefined);
   const [infoAlert, setShowInfoAlert] = useState(true);
 
   const handleFileInput = (event) => {
@@ -125,7 +125,7 @@ const UploadForm = ({ clientsInfo }) => {
                   <Form.Check
                     type="radio"
                     label="No"
-                    checked={!directPath}
+                    checked={directPath === false}
                     onChange={() => setDirectPath(false)}
                   />
                 </div>
@@ -138,7 +138,7 @@ const UploadForm = ({ clientsInfo }) => {
               </Form.Group>
               <input
                 ref={inputFileRef}
-                disabled={!selectedClient}
+                disabled={!selectedClient || directPath === undefined}
                 type="file"
                 onChange={handleFileInput}
                 accept=".csv, .xml"
