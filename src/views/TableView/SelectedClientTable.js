@@ -21,7 +21,7 @@ const SelectedClientTable = () => {
   const clientsData = getClientsFromLocalStorage();
 
   const clinicName = clientsData.length
-    ? clientsData.filter(({ uname }) => currentUname === uname)[0].name
+    ? clientsData.filter(({ uname }) => currentUname === uname)[0]?.name
     : "No Clinic Selected";
 
   const fetchLogs = async () => {
