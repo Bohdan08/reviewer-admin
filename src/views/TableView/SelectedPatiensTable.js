@@ -1,31 +1,27 @@
-import { useAuth0 } from "@auth0/auth0-react";
 import React, { useState } from "react";
-import { Alert, Spinner, Table } from "react-bootstrap";
+import { useAuth0 } from "@auth0/auth0-react";
+import { useLocation } from "react-router";
+import { PATIENTS_API } from "../../constants";
 import { useQuery } from "react-query";
-import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
-import { CLIENTS_API, CLINIC_NAME_BY_UNAME } from "../../constants";
-import getClientsFromLocalStorage from "../../utils/getClientsFromLocalStorage";
+import { Alert, Spinner, Table } from "react-bootstrap";
 
-const TABLE_HEADERS = ["ID", "Key", "Status", "Uploaded"];
+const TABLE_HEADERS = [
+  "ID",
+  "Full Name",
+  "Phone",
+  "Status",
+  "Last Visit",
+  "Reviews",
+];
 
-const SelectedClientTable = () => {
-  const navigate = useNavigate();
-  const { getAccessTokenSilently, getIdTokenClaims } = useAuth0();
-  const [searchParams] = useSearchParams();
+const SelectedPatiensTable = () => {
   const location = useLocation();
+  const { getAccessTokenSilently, getIdTokenClaims } = useAuth0();
   const [loading, setLoading] = useState(true);
 
-  const currentClientId = searchParams.get("clientId");
+  const selectedPatientsId = location.pathname.split("/").pop();
 
-  const currentUname = location.pathname.split("/").pop();
-
-  const clientsData = getClientsFromLocalStorage();
-
-  const clinicName = clientsData.length
-    ? clientsData.filter(({ uname }) => currentUname === uname)[0]?.name
-    : "No Clinic Selected";
-
-  const fetchLogs = async () => {
+  const fetchPatients = async () => {
     setLoading(true);
     const tokenAccess = await getAccessTokenSilently();
     const userInfo = await getIdTokenClaims();
@@ -39,7 +35,7 @@ const SelectedClientTable = () => {
       };
 
       const response = await fetch(
-        `${process.env.REACT_APP_BASE_URL}${CLIENTS_API}/${currentClientId}/logs`,
+        `${process.env.REACT_APP_BASE_URL}${PATIENTS_API}/${selectedPatientsId}/patients`,
         options
       )
         .then((res) => res.json())
@@ -70,14 +66,12 @@ const SelectedClientTable = () => {
     return;
   };
 
-  const result = useQuery("selectedClient", fetchLogs);
+  const result = useQuery("selectedPatients", fetchPatients);
 
   return (
     <div>
-      <h2 className="text-center pb-2">
-        {" "}
-        {CLINIC_NAME_BY_UNAME[currentUname] || clinicName}{" "}
-      </h2>{" "}
+      {" "}
+      <h2 className="text-center pb-2">Patients</h2>{" "}
       {loading ? (
         <div className="mt-5 center-vertically-block">
           <Spinner className="d-flex m-auto" animation="border" role="status" />
@@ -85,7 +79,7 @@ const SelectedClientTable = () => {
         </div>
       ) : result.data?.data?.length ? (
         <>
-          <Table bordered hover className="rounded">
+          <Table bordered>
             <thead>
               <tr>
                 {TABLE_HEADERS.map((headerName) => (
@@ -94,20 +88,30 @@ const SelectedClientTable = () => {
               </tr>
             </thead>
             <tbody>
-              {result.data.data.map(({ id, s3key, status, uploadedAt }) => (
-                <tr
-                  key={id}
-                  className="cursor-pointer"
-                  onClick={() => {
-                    navigate(`${id}?clientId=${currentClientId}`);
-                  }}
-                >
-                  <td className="text-capitalize">{id}</td>
-                  <td className="text-capitalize">{s3key}</td>
-                  <td className="text-capitalize">{status}</td>
-                  <td className="text-capitalize">{uploadedAt.slice(0, 10)}</td>
-                </tr>
-              ))}
+              {result.data.data.map(
+                ({
+                  id,
+                  fname,
+                  lname,
+                  phone,
+                  status,
+                  lastVisitedOn,
+                  reviews,
+                }) => (
+                  <tr key={id}>
+                    <td className="text-capitalize">{id}</td>
+                    <td className="text-capitalize">
+                      {fname} {lname}
+                    </td>
+                    <td className="text-capitalize">{phone}</td>
+                    <td className="text-capitalize">{status}</td>
+                    <td className="text-capitalize">
+                      {lastVisitedOn ? lastVisitedOn.slice(0, 10) : "N/A"}
+                    </td>
+                    <td className="text-capitalize">{reviews || "N/A"}</td>
+                  </tr>
+                )
+              )}
             </tbody>
           </Table>
         </>
@@ -116,14 +120,14 @@ const SelectedClientTable = () => {
           variant="danger"
           className="mt-5 m-auto w-50 text-center text-break"
         >
-          {result.data ? (
+          {result.data && (result.data.header || result.data.message) ? (
             <>
               <b> {result.data.header}</b>
 
               <p className="mt-2">{result.data.message} </p>
             </>
           ) : (
-            "No Logs Found..."
+            "No Patients Found"
           )}
         </Alert>
       )}
@@ -131,4 +135,4 @@ const SelectedClientTable = () => {
   );
 };
 
-export default SelectedClientTable;
+export default SelectedPatiensTable;

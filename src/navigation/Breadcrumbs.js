@@ -26,9 +26,15 @@ const Breadcrumbs = ({ route }) => {
           <Breadcrumb.Item key={index}>
             {index < breadcrumbs.length - 1 && (
               <NavLink
-                to={index > 0 ? `/${allVisitedPaths[index - 1]}` : crumb.path}
+                to={
+                  index > 0
+                    ? `/${allVisitedPaths[index]}${location.search}`
+                    : crumb.path
+                }
               >
-                {crumb.label}
+                <span className="text-capitalize">
+                  {allVisitedPaths[index]?.split("/").pop() || crumb.label}
+                </span>
               </NavLink>
             )}
             <span className="cursor-default-important text-capitalize">

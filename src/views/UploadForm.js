@@ -72,8 +72,7 @@ const UploadForm = ({ clientsInfo }) => {
       let promise = upload.promise();
 
       promise.then(
-        (val) => {
-          console.log(val, "val");
+        () => {
           setShowInfoAlert(true);
           setUploadedFileStatus(API_STATUS.SUCCESS);
           setSelectedFile(null);
