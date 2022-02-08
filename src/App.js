@@ -10,32 +10,27 @@ import {
   Alert,
   Spinner,
 } from "react-bootstrap";
-import UploadForm from "./ Components/UploadForm";
-import ClientsTable from "./ Components/TableView/ClientsTable";
-import SelectedClientTable from "./ Components/TableView/SelectedClientTable";
 import { CLIENTS_API } from "./constants";
 
 // assets
 import logo from "./assets/logo.png";
+import Page from "./navigation/Page";
+// import routes from "./routes";
 
 const NAV_ITEMS = [
   {
     key: "uploadForm",
     name: "Upload a File",
     link: "/",
-    // exact: true,
-    // Component: UploadForm,
   },
   {
     key: "customerTable",
     name: "Clients",
     link: "/clients",
-    // exact: false,
-    // Component: ClientsTable,
   },
 ];
 
-const App = () => {
+const App = ({ routes }) => {
   const {
     loginWithRedirect,
     isLoading,
@@ -176,16 +171,15 @@ const App = () => {
             </div>
           ) : (
             <Routes>
-              <Route index element={<UploadForm clientsInfo={clientsInfo} />} />
-              <Route
-                path="clients"
-                element={<ClientsTable clientsInfo={clientsInfo} />}
-              />
-              <Route
-                path="clients/:selectedClient"
-                element={<SelectedClientTable clientsInfo={clientsInfo} />}
-              />
-
+              {routes.map((route) => {
+                return (
+                  <Route
+                    index={route.index}
+                    path={route.path}
+                    element={<Page route={route} clientsInfo={clientsInfo} />}
+                  />
+                );
+              })}
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           )}

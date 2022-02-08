@@ -5,6 +5,8 @@ import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "react-query";
 import history from "./utils/history";
 import App from "./App";
+import { generateAppRoutes } from "./navigation/utils";
+import routes from "./routes";
 
 // styles
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -26,12 +28,15 @@ const providerConfig = {
 // Create a client
 const queryClient = new QueryClient();
 
+// Routes
+const appRoutes = generateAppRoutes(routes);
+
 ReactDOM.render(
   <Auth0Provider {...providerConfig}>
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <App />
+          <App routes={appRoutes} />
         </BrowserRouter>
       </QueryClientProvider>
     </React.StrictMode>
