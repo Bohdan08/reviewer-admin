@@ -173,6 +173,7 @@ const App = ({ routes }) => {
               {routes.map((route) => {
                 return (
                   <Route
+                    key={route.label}
                     index={route.index || false}
                     path={route.path}
                     element={<Page route={route} clientsInfo={clientsInfo} />}

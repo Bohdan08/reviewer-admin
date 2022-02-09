@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Alert, Spinner, Table } from "react-bootstrap";
 import { useQuery } from "react-query";
 import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
+import CustomPagination from "../../components/CustomPagination";
 import { CLIENTS_API, CLINIC_NAME_BY_UNAME } from "../../constants";
 import getClientsFromLocalStorage from "../../utils/getClientsFromLocalStorage";
 
@@ -13,6 +14,7 @@ const SelectedClientTable = () => {
   const { getAccessTokenSilently, getIdTokenClaims } = useAuth0();
   const [searchParams] = useSearchParams();
   const location = useLocation();
+  const [activePageNumber, setActivePageNumber] = useState(1);
   const [loading, setLoading] = useState(true);
 
   const currentClientId = searchParams.get("clientId");
@@ -25,7 +27,7 @@ const SelectedClientTable = () => {
     ? clientsData.filter(({ uname }) => currentUname === uname)[0]?.name
     : "No Clinic Selected";
 
-  const fetchLogs = async () => {
+  const fetchLogs = async (selectedPage = 1) => {
     setLoading(true);
     const tokenAccess = await getAccessTokenSilently();
     const userInfo = await getIdTokenClaims();
@@ -39,7 +41,7 @@ const SelectedClientTable = () => {
       };
 
       const response = await fetch(
-        `${process.env.REACT_APP_BASE_URL}${CLIENTS_API}/${currentClientId}/logs`,
+        `${process.env.REACT_APP_BASE_URL}${CLIENTS_API}/${currentClientId}/logs?page=${selectedPage}`,
         options
       )
         .then((res) => res.json())
@@ -70,7 +72,15 @@ const SelectedClientTable = () => {
     return;
   };
 
-  const result = useQuery("selectedClient", fetchLogs);
+  const result = useQuery(
+    ["selectedClient", activePageNumber],
+    () => fetchLogs(activePageNumber),
+    { keepPreviousData: true }
+  );
+
+  const onSetActivePageNumber = (value) => {
+    setActivePageNumber(value);
+  };
 
   return (
     <div>
@@ -110,6 +120,17 @@ const SelectedClientTable = () => {
               ))}
             </tbody>
           </Table>
+          <div>
+            {result.data.pageInfo.totalCount >
+              result.data.pageInfo.pageSize && (
+              <CustomPagination
+                pageSize={result.data.pageInfo.pageSize}
+                totalCount={result.data.pageInfo.totalCount}
+                active={activePageNumber}
+                onSetActivePageNumber={onSetActivePageNumber}
+              />
+            )}
+          </div>
         </>
       ) : (
         <Alert

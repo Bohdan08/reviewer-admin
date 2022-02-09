@@ -4,6 +4,7 @@ import { useLocation } from "react-router";
 import { PATIENTS_API } from "../../constants";
 import { useQuery } from "react-query";
 import { Alert, Spinner, Table } from "react-bootstrap";
+import CustomPagination from "../../components/CustomPagination";
 
 const TABLE_HEADERS = [
   "ID",
@@ -18,10 +19,11 @@ const SelectedPatiensTable = () => {
   const location = useLocation();
   const { getAccessTokenSilently, getIdTokenClaims } = useAuth0();
   const [loading, setLoading] = useState(true);
+  const [activePageNumber, setActivePageNumber] = useState(1);
 
   const selectedPatientsId = location.pathname.split("/").pop();
 
-  const fetchPatients = async () => {
+  const fetchPatients = async (selectedPage = 1) => {
     setLoading(true);
     const tokenAccess = await getAccessTokenSilently();
     const userInfo = await getIdTokenClaims();
@@ -35,7 +37,7 @@ const SelectedPatiensTable = () => {
       };
 
       const response = await fetch(
-        `${process.env.REACT_APP_BASE_URL}${PATIENTS_API}/${selectedPatientsId}/patients`,
+        `${process.env.REACT_APP_BASE_URL}${PATIENTS_API}/${selectedPatientsId}/patients?page=${selectedPage}`,
         options
       )
         .then((res) => res.json())
@@ -66,7 +68,15 @@ const SelectedPatiensTable = () => {
     return;
   };
 
-  const result = useQuery("selectedPatients", fetchPatients);
+  const result = useQuery(
+    ["selectedPatients", activePageNumber],
+    () => fetchPatients(activePageNumber),
+    { keepPreviousData: true }
+  );
+
+  const onSetActivePageNumber = (value) => {
+    setActivePageNumber(value);
+  };
 
   return (
     <div>
@@ -114,6 +124,17 @@ const SelectedPatiensTable = () => {
               )}
             </tbody>
           </Table>
+          <div>
+            {result.data.pageInfo.totalCount >
+              result.data.pageInfo.pageSize && (
+              <CustomPagination
+                pageSize={result.data.pageInfo.pageSize}
+                totalCount={result.data.pageInfo.totalCount}
+                active={activePageNumber}
+                onSetActivePageNumber={onSetActivePageNumber}
+              />
+            )}
+          </div>
         </>
       ) : (
         <Alert
