@@ -2,7 +2,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import React, { useState } from "react";
 import { Alert, Spinner, Table } from "react-bootstrap";
 import { useQuery } from "react-query";
-import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import CustomPagination from "../../components/CustomPagination";
 import { CLIENTS_API, CLINIC_NAME_BY_UNAME } from "../../constants";
 import getClientsFromLocalStorage from "../../utils/getClientsFromLocalStorage";
@@ -12,75 +12,77 @@ const TABLE_HEADERS = ["ID", "Key", "Status", "Uploaded"];
 const SelectedClientTable = () => {
   const navigate = useNavigate();
   const { getAccessTokenSilently, getIdTokenClaims } = useAuth0();
-  const [searchParams] = useSearchParams();
   const location = useLocation();
   const [activePageNumber, setActivePageNumber] = useState(1);
-  const [loading, setLoading] = useState(true);
-
-  const currentClientId = searchParams.get("clientId");
 
   const currentUname = location.pathname.split("/").pop();
 
   const clientsData = getClientsFromLocalStorage();
 
-  const clinicName = clientsData.length
+  const currentClientId =
+    clientsData?.length &&
+    clientsData.filter(({ uname }) => currentUname === uname)[0]?.id;
+
+  const clinicName = clientsData?.length
     ? clientsData.filter(({ uname }) => currentUname === uname)[0]?.name
     : "No Clinic Selected";
 
   const fetchLogs = async (selectedPage = 1) => {
-    setLoading(true);
-    const tokenAccess = await getAccessTokenSilently();
-    const userInfo = await getIdTokenClaims();
+    if (currentClientId) {
+      const tokenAccess = await getAccessTokenSilently();
+      const userInfo = await getIdTokenClaims();
 
-    if (tokenAccess && userInfo) {
-      const options = {
-        method: "GET",
-        headers: {
-          Authorization: userInfo?.__raw,
-        },
-      };
+      if (tokenAccess && userInfo) {
+        const options = {
+          method: "GET",
+          headers: {
+            Authorization: userInfo?.__raw,
+          },
+        };
 
-      const response = await fetch(
-        `${process.env.REACT_APP_BASE_URL}${CLIENTS_API}/${currentClientId}/logs?page=${selectedPage}`,
-        options
-      )
-        .then((res) => res.json())
-        .then(({ status, data, error, message, pageInfo }) => {
-          if (status !== 200) {
-            setLoading(false);
+        const response = await fetch(
+          `${process.env.REACT_APP_BASE_URL}${CLIENTS_API}/${currentClientId}/logs?page=${selectedPage}`,
+          options
+        )
+          .then((res) => res.json())
+          .then(({ status, data, error, message, pageInfo }) => {
+            if (status !== 200) {
+              return {
+                data: [],
+                header: `${error}: ${status}`,
+                message,
+                status,
+              };
+            }
+
+            return { data, pageInfo };
+          })
+          .catch(({ message }) => {
             return {
               data: [],
-              header: `${error}: ${status}`,
               message,
-              status,
             };
-          }
+          });
 
-          setLoading(false);
-          return { data, pageInfo };
-        })
-        .catch(({ message }) => {
-          return {
-            data: [],
-            message,
-          };
-        });
-
-      setLoading(false);
-      return response;
+        return response;
+      }
+      return;
     }
     return;
   };
 
-  const result = useQuery(
+  const onSetActivePageNumber = (value) => {
+    setActivePageNumber(value);
+  };
+
+  const {
+    isFetching,
+    data: { data, pageInfo, message, header } = {},
+  } = useQuery(
     ["selectedClient", activePageNumber],
     () => fetchLogs(activePageNumber),
     { keepPreviousData: true }
   );
-
-  const onSetActivePageNumber = (value) => {
-    setActivePageNumber(value);
-  };
 
   return (
     <div>
@@ -88,12 +90,12 @@ const SelectedClientTable = () => {
         {" "}
         {CLINIC_NAME_BY_UNAME[currentUname] || clinicName}{" "}
       </h2>{" "}
-      {loading ? (
+      {isFetching ? (
         <div className="mt-5 center-vertically-block">
           <Spinner className="d-flex m-auto" animation="border" role="status" />
           <p className="pt-3">Loading...</p>
         </div>
-      ) : result.data?.data?.length ? (
+      ) : data?.length ? (
         <>
           <Table bordered hover className="rounded">
             <thead>
@@ -104,12 +106,14 @@ const SelectedClientTable = () => {
               </tr>
             </thead>
             <tbody>
-              {result.data.data.map(({ id, s3key, status, uploadedAt }) => (
+              {data.map(({ id, s3key, status, uploadedAt }) => (
                 <tr
                   key={id}
-                  className="cursor-pointer"
+                  className={status === "PENDING" ? " " : "cursor-pointer"}
                   onClick={() => {
-                    navigate(`${id}?clientId=${currentClientId}`);
+                    if (status !== "PENDING") {
+                      navigate(`${id}`);
+                    }
                   }}
                 >
                   <td className="text-capitalize">{id}</td>
@@ -121,11 +125,10 @@ const SelectedClientTable = () => {
             </tbody>
           </Table>
           <div>
-            {result.data.pageInfo.totalCount >
-              result.data.pageInfo.pageSize && (
+            {pageInfo.totalCount > pageInfo.pageSize && (
               <CustomPagination
-                pageSize={result.data.pageInfo.pageSize}
-                totalCount={result.data.pageInfo.totalCount}
+                pageSize={pageInfo.pageSize}
+                totalCount={pageInfo.totalCount}
                 active={activePageNumber}
                 onSetActivePageNumber={onSetActivePageNumber}
               />
@@ -137,11 +140,11 @@ const SelectedClientTable = () => {
           variant="danger"
           className="mt-5 m-auto w-50 text-center text-break"
         >
-          {result.data ? (
+          {header || message ? (
             <>
-              <b> {result.data.header}</b>
+              <b> {header}</b>
 
-              <p className="mt-2">{result.data.message} </p>
+              {message && <p className="mt-2">{message} </p>}
             </>
           ) : (
             "No Logs Found..."

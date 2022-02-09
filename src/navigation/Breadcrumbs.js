@@ -20,10 +20,10 @@ const Breadcrumbs = ({ route }) => {
   const currentCrumbName = location.pathname.split("/").pop();
 
   return (
-    <Breadcrumb className="breadcrumbs">
+    <Breadcrumb>
       {pathTo(route).map((crumb, index, breadcrumbs) => {
         return (
-          <Breadcrumb.Item key={index}>
+          <li key={index} className="breadcrumb-item">
             {index < breadcrumbs.length - 1 && (
               <NavLink
                 to={
@@ -41,7 +41,7 @@ const Breadcrumbs = ({ route }) => {
               {index === breadcrumbs.length - 1 &&
                 (currentCrumbName || crumb.label)}
             </span>
-          </Breadcrumb.Item>
+          </li>
         );
       })}
     </Breadcrumb>

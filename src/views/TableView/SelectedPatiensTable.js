@@ -18,13 +18,11 @@ const TABLE_HEADERS = [
 const SelectedPatiensTable = () => {
   const location = useLocation();
   const { getAccessTokenSilently, getIdTokenClaims } = useAuth0();
-  const [loading, setLoading] = useState(true);
   const [activePageNumber, setActivePageNumber] = useState(1);
 
   const selectedPatientsId = location.pathname.split("/").pop();
 
   const fetchPatients = async (selectedPage = 1) => {
-    setLoading(true);
     const tokenAccess = await getAccessTokenSilently();
     const userInfo = await getIdTokenClaims();
 
@@ -43,7 +41,6 @@ const SelectedPatiensTable = () => {
         .then((res) => res.json())
         .then(({ status, data, error, message, pageInfo }) => {
           if (status !== 200) {
-            setLoading(false);
             return {
               data: [],
               header: `${error}: ${status}`,
@@ -52,7 +49,6 @@ const SelectedPatiensTable = () => {
             };
           }
 
-          setLoading(false);
           return { data, pageInfo };
         })
         .catch(({ message }) => {
@@ -62,32 +58,35 @@ const SelectedPatiensTable = () => {
           };
         });
 
-      setLoading(false);
       return response;
     }
     return;
   };
 
-  const result = useQuery(
+  const onSetActivePageNumber = (value) => {
+    setActivePageNumber(value);
+  };
+
+  const {
+    isFetching,
+    isLoading,
+    data: { data, pageInfo, message, header } = {},
+  } = useQuery(
     ["selectedPatients", activePageNumber],
     () => fetchPatients(activePageNumber),
     { keepPreviousData: true }
   );
 
-  const onSetActivePageNumber = (value) => {
-    setActivePageNumber(value);
-  };
-
   return (
     <div>
       {" "}
       <h2 className="text-center pb-2">Patients</h2>{" "}
-      {loading ? (
+      {isLoading || isFetching ? (
         <div className="mt-5 center-vertically-block">
           <Spinner className="d-flex m-auto" animation="border" role="status" />
           <p className="pt-3">Loading...</p>
         </div>
-      ) : result.data?.data?.length ? (
+      ) : data?.length ? (
         <>
           <Table bordered>
             <thead>
@@ -98,7 +97,7 @@ const SelectedPatiensTable = () => {
               </tr>
             </thead>
             <tbody>
-              {result.data.data.map(
+              {data.map(
                 ({
                   id,
                   fname,
@@ -125,11 +124,10 @@ const SelectedPatiensTable = () => {
             </tbody>
           </Table>
           <div>
-            {result.data.pageInfo.totalCount >
-              result.data.pageInfo.pageSize && (
+            {pageInfo.totalCount > pageInfo.pageSize && (
               <CustomPagination
-                pageSize={result.data.pageInfo.pageSize}
-                totalCount={result.data.pageInfo.totalCount}
+                pageSize={pageInfo.pageSize}
+                totalCount={pageInfo.totalCount}
                 active={activePageNumber}
                 onSetActivePageNumber={onSetActivePageNumber}
               />
@@ -141,11 +139,11 @@ const SelectedPatiensTable = () => {
           variant="danger"
           className="mt-5 m-auto w-50 text-center text-break"
         >
-          {result.data && (result.data.header || result.data.message) ? (
+          {header || message ? (
             <>
-              <b> {result.data.header}</b>
+              <b> {header}</b>
 
-              <p className="mt-2">{result.data.message} </p>
+              {message && <p className="mt-2">{message} </p>}
             </>
           ) : (
             "No Patients Found"

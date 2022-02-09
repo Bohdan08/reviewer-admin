@@ -26,7 +26,7 @@ const ClientsTable = ({ clientsInfo = [] }) => {
                   key={id}
                   className="cursor-pointer"
                   onClick={() => {
-                    navigate(`${uname}?clientId=${id}`);
+                    navigate(uname);
                   }}
                 >
                   <td className="text-capitalize">{id}</td>
