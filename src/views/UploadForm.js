@@ -11,11 +11,8 @@ AWS.config.update({
   region: process.env.REACT_APP_REGION,
 });
 
-const currentDate = new Date()
-  .toISOString()
-  .replace("T", "")
-  .replace(/\D/g, "")
-  .substr(0, 14);
+const generateCurrentDate = () =>
+  new Date().toISOString().replace("T", "").replace(/\D/g, "").substr(0, 14);
 
 // const mockData = [
 //   {
@@ -65,7 +62,7 @@ const UploadForm = ({ clientsInfo }) => {
           // Bucket: bucketName,
           Bucket: `${process.env.REACT_APP_S3_BUCKET}/${selectedClient}${directKey}`,
           // Key: file.name,
-          Key: `import_${currentDate}.${fileFormat}`,
+          Key: `import_${generateCurrentDate()}.${fileFormat}`,
         },
       });
 
