@@ -12,7 +12,7 @@ const ClientsTable = ({ clientsInfo = [] }) => {
       <h2 className="text-center pb-2"> Clients </h2>
       {clientsInfo.length ? (
         <>
-          <Table bordered hover className="rounded">
+          <Table bordered hover responsive>
             <thead>
               <tr>
                 {TABLE_HEADERS.map((headerName) => (
