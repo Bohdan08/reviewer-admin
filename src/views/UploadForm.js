@@ -14,25 +14,7 @@ AWS.config.update({
 const generateCurrentDate = () =>
   new Date().toISOString().replace("T", "").replace(/\D/g, "").substr(0, 14);
 
-// const mockData = [
-//   {
-//     id: 1,
-//     uname: "accuro",
-//     name: "Wilderman Medical Clinic",
-//     website: "https://drwilderman.com/dr-wilderman/",
-//     linkGoogleMobile: "https://g.page/r/CfZwMlYIc8AuEAo/review",
-//     logo: "logo.bc3311f1.png",
-//   },
-//   {
-//     id: 2,
-//     uname: "cosmetic",
-//     name: "Wilderman Cosmetic Clinic",
-//     website: "https://www.medicalcosmeticclinic.ca/",
-//     linkGoogleMobile: "https://g.page/r/CaCvhTvMAv9MEAo/review",
-//     logo: "logo.543e3158.png",
-//   },
-// ];
-
+  
 const UploadForm = ({ clientsInfo }) => {
   const inputFileRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
