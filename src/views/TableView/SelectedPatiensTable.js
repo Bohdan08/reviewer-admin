@@ -1,10 +1,8 @@
 import React, { useState } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
-import { useLocation } from "react-router";
-import { PATIENTS_API } from "../../constants";
-import { useQuery } from "react-query";
 import { Alert, Spinner, Table } from "react-bootstrap";
+import { useLocation } from "react-router";
 import CustomPagination from "../../components/CustomPagination";
+import usePatients from "../../hooks/usePatients";
 
 const TABLE_HEADERS = [
   "ID",
@@ -17,65 +15,17 @@ const TABLE_HEADERS = [
 
 const SelectedPatiensTable = () => {
   const location = useLocation();
-  const { getAccessTokenSilently, getIdTokenClaims } = useAuth0();
   const [activePageNumber, setActivePageNumber] = useState(1);
 
   const selectedPatientsId = location.pathname.split("/").pop();
-
-  const fetchPatients = async (selectedPage = 1) => {
-    const tokenAccess = await getAccessTokenSilently();
-    const userInfo = await getIdTokenClaims();
-
-    if (tokenAccess && userInfo) {
-      const options = {
-        method: "GET",
-        headers: {
-          Authorization: userInfo?.__raw,
-        },
-      };
-
-      const response = await fetch(
-        `${process.env.REACT_APP_BASE_URL}${PATIENTS_API}/${selectedPatientsId}/patients?page=${selectedPage}`,
-        options
-      )
-        .then((res) => res.json())
-        .then(({ status, data, error, message, pageInfo }) => {
-          if (status !== 200) {
-            return {
-              data: [],
-              header: `${error}: ${status}`,
-              message,
-              status,
-            };
-          }
-
-          return { data, pageInfo };
-        })
-        .catch(({ message }) => {
-          return {
-            data: [],
-            message,
-          };
-        });
-
-      return response;
-    }
-    return;
-  };
-
-  const onSetActivePageNumber = (value) => {
-    setActivePageNumber(value);
-  };
 
   const {
     isFetching,
     isLoading,
     data: { data, pageInfo, message, header } = {},
-  } = useQuery(
-    ["selectedPatients", activePageNumber],
-    () => fetchPatients(activePageNumber),
-    { keepPreviousData: true }
-  );
+  } = usePatients(activePageNumber, selectedPatientsId);
+
+  const onSetActivePageNumber = (value) => setActivePageNumber(value);
 
   return (
     <div>

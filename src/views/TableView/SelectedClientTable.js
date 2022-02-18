@@ -1,6 +1,14 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import React, { useState } from "react";
-import { Alert, Button, Modal, Spinner, Table } from "react-bootstrap";
+import {
+  Accordion,
+  Alert,
+  Button,
+  ListGroup,
+  Modal,
+  Spinner,
+  Table,
+} from "react-bootstrap";
 import { useQuery } from "react-query";
 import { useLocation, useNavigate } from "react-router-dom";
 import CustomPagination from "../../components/CustomPagination";
@@ -9,6 +17,7 @@ import {
   CLINIC_NAME_BY_UNAME,
   PATIENTS_API,
 } from "../../constants";
+import usePatients from "../../hooks/usePatients";
 import getClientsFromLocalStorage from "../../utils/getClientsFromLocalStorage";
 
 const TABLE_HEADERS = [
@@ -24,10 +33,12 @@ const SelectedClientTable = () => {
   const navigate = useNavigate();
   const { getAccessTokenSilently, getIdTokenClaims } = useAuth0();
   const location = useLocation();
-  const [activePageNumber, setActivePageNumber] = useState(1);
+  const [clientsPageNumber, setClientsPageNumber] = useState(1);
+  const [patientsPageNumber, setPatientsPageNumber] = useState(1);
   const [notificationId, setNotificationId] = useState(null);
   const [modalView, toggleModalView] = useState(false);
   const [responseModalView, toggleResponseModalView] = useState(false);
+  const [accordionView, toggleAccordionView] = useState(false);
   const [notificationResponse, setNotificationResponse] = useState({
     header: "",
     message: "",
@@ -97,7 +108,6 @@ const SelectedClientTable = () => {
         method: "POST",
         headers: {
           Authorization: userInfo?.__raw,
-          // Authorization: "",
         },
       };
 
@@ -140,24 +150,21 @@ const SelectedClientTable = () => {
     }
   }
 
-  const onSetActivePageNumber = (value) => {
-    setActivePageNumber(value);
-  };
+  const onSetClientsPageNumber = (value) => setClientsPageNumber(value);
+  const onSetPatientsPageNumber = (value) => setPatientsPageNumber(value);
 
   const {
     isFetching,
     data: { data, pageInfo, message, header } = {},
   } = useQuery(
-    ["selectedClient", activePageNumber, notificationResponse.status],
-    () => fetchLogs(activePageNumber),
+    ["selectedClient", clientsPageNumber, notificationResponse.status],
+    () => fetchLogs(clientsPageNumber),
     {
       keepPreviousData: true,
-      // The query will not execute until notificationResponse is not equal 200
+      // The query won't be executed until notificationResponse is not equal 200
       enabled: notificationResponse.status !== 200,
     }
   );
-
-  console.log(isFetching, "isFetching");
 
   const openModalView = () => toggleModalView(true);
   const closeModalView = () => toggleModalView(false);
@@ -197,6 +204,12 @@ const SelectedClientTable = () => {
     return null;
   };
 
+  // patients
+  const patientsResult = usePatients(patientsPageNumber, notificationId, {
+    keepPreviousData: true,
+    enabled: false,
+  });
+
   return (
     <>
       <div>
@@ -204,7 +217,7 @@ const SelectedClientTable = () => {
           {" "}
           {CLINIC_NAME_BY_UNAME[currentUname] || clinicName}{" "}
         </h2>{" "}
-        {isFetching ? (
+        {!modalView && !responseModalView && isFetching ? (
           <div className="mt-5 center-vertically-block">
             <Spinner
               className="d-flex m-auto"
@@ -257,8 +270,8 @@ const SelectedClientTable = () => {
                 <CustomPagination
                   pageSize={pageInfo.pageSize}
                   totalCount={pageInfo.totalCount}
-                  active={activePageNumber}
-                  onSetActivePageNumber={onSetActivePageNumber}
+                  active={clientsPageNumber}
+                  onSetActivePageNumber={onSetClientsPageNumber}
                 />
               )}
             </div>
@@ -285,7 +298,80 @@ const SelectedClientTable = () => {
           <Modal.Header closeButton>
             <Modal.Title className="text-center">Are you sure?</Modal.Title>
           </Modal.Header>
+          <Modal.Body>
+            <Accordion
+              onClick={() => {
+                toggleAccordionView(!accordionView);
 
+                // refetch if it's opening
+                if (!accordionView) {
+                  patientsResult.refetch();
+                }
+              }}
+            >
+              <Accordion.Item eventKey="0">
+                <Accordion.Header>Check affected patients</Accordion.Header>
+                <Accordion.Body className="p-0">
+                  {isFetching ||
+                  patientsResult.isFetching ||
+                  patientsResult.isLoading ? (
+                    <div className="mt-2">
+                      <Spinner
+                        className="d-flex m-auto"
+                        animation="border"
+                        role="status"
+                      />
+                      <p className="pt-3 text-center">Loading...</p>
+                    </div>
+                  ) : patientsResult.data?.data?.length ? (
+                    <>
+                      <ListGroup as="ol" numbered className="rounded-0">
+                        {patientsResult.data.data.map(
+                          ({ fname, lname, sendable }) =>
+                            sendable && (
+                              <ListGroup.Item as="li" key={`${fname} ${lname}`}>
+                                {`${fname} ${lname}`}
+                              </ListGroup.Item>
+                            )
+                        )}
+                      </ListGroup>
+                      <div>
+                        {patientsResult.data.pageInfo.totalCount >
+                          patientsResult.data.pageInfo.pageSize && (
+                          <CustomPagination
+                            pageSize={patientsResult.data.pageInfo.pageSize}
+                            totalCount={patientsResult.data.pageInfo.totalCount}
+                            active={patientsPageNumber}
+                            onSetActivePageNumber={onSetPatientsPageNumber}
+                          />
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    <Alert
+                      variant="danger"
+                      className="my-4 mx-auto w-75 text-center text-break"
+                    >
+                      {patientsResult.data?.header ||
+                      patientsResult.data?.message ? (
+                        <>
+                          <b> {patientsResult.data.header}</b>
+
+                          {patientsResult.data.message && (
+                            <p className="mt-2">
+                              {patientsResult.data.message}{" "}
+                            </p>
+                          )}
+                        </>
+                      ) : (
+                        "No Patients Found..."
+                      )}
+                    </Alert>
+                  )}
+                </Accordion.Body>
+              </Accordion.Item>
+            </Accordion>
+          </Modal.Body>
           <Modal.Footer>
             <Button variant="secondary" onClick={closeModalView}>
               Cancel
