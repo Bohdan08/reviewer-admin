@@ -36,14 +36,13 @@ const SelectedClientTable = () => {
   const [clientsPageNumber, setClientsPageNumber] = useState(1);
   const [patientsPageNumber, setPatientsPageNumber] = useState(1);
   const [notificationId, setNotificationId] = useState(null);
-  const [modalView, toggleModalView] = useState(false);
+  const [confirmationModalView, toggleModalConfirmationView] = useState(false);
   const [responseModalView, toggleResponseModalView] = useState(false);
   const [accordionView, toggleAccordionView] = useState(false);
   const [notificationResponse, setNotificationResponse] = useState({
     header: "",
     message: "",
   });
-
   const currentUname = location.pathname.split("/").pop();
 
   const clientsData = getClientsFromLocalStorage();
@@ -166,8 +165,11 @@ const SelectedClientTable = () => {
     }
   );
 
-  const openModalView = () => toggleModalView(true);
-  const closeModalView = () => toggleModalView(false);
+  const openModalConfirmationView = () => toggleModalConfirmationView(true);
+  const closeConfirmationModalView = () => {
+    toggleModalConfirmationView(false);
+    toggleAccordionView(false);
+  };
 
   const openResponseModalView = () => toggleResponseModalView(true);
   const closeResponseModalView = () => toggleResponseModalView(false);
@@ -179,7 +181,7 @@ const SelectedClientTable = () => {
           variant="success w-100"
           onClick={() => {
             setNotificationId(id);
-            openModalView();
+            openModalConfirmationView();
           }}
         >
           SEND
@@ -193,7 +195,7 @@ const SelectedClientTable = () => {
           variant="danger w-100"
           onClick={() => {
             setNotificationId(id);
-            openModalView();
+            openModalConfirmationView();
           }}
         >
           RESEND
@@ -217,7 +219,7 @@ const SelectedClientTable = () => {
           {" "}
           {CLINIC_NAME_BY_UNAME[currentUname] || clinicName}{" "}
         </h2>{" "}
-        {!modalView && !responseModalView && isFetching ? (
+        {!confirmationModalView && !responseModalView && isFetching ? (
           <div className="mt-5 center-vertically-block">
             <Spinner
               className="d-flex m-auto"
@@ -293,8 +295,12 @@ const SelectedClientTable = () => {
           </Alert>
         )}
       </div>
-      {modalView ? (
-        <Modal show={modalView} onHide={closeModalView} centered>
+      {confirmationModalView ? (
+        <Modal
+          show={confirmationModalView}
+          onHide={closeConfirmationModalView}
+          centered
+        >
           <Modal.Header closeButton>
             <Modal.Title className="text-center">Are you sure?</Modal.Title>
           </Modal.Header>
@@ -303,7 +309,6 @@ const SelectedClientTable = () => {
               onClick={() => {
                 toggleAccordionView(!accordionView);
 
-                // refetch if it's opening
                 if (!accordionView) {
                   patientsResult.refetch();
                 }
@@ -325,20 +330,21 @@ const SelectedClientTable = () => {
                     </div>
                   ) : patientsResult.data?.data?.length ? (
                     <>
-                      <ListGroup as="ol" numbered className="rounded-0">
+                      <ListGroup className="rounded-0">
                         {patientsResult.data.data.map(
                           ({ fname, lname, sendable }) =>
                             sendable && (
-                              <ListGroup.Item as="li" key={`${fname} ${lname}`}>
+                              <ListGroup.Item key={`${fname} ${lname}`}>
                                 {`${fname} ${lname}`}
                               </ListGroup.Item>
                             )
                         )}
                       </ListGroup>
-                      <div>
+                      <div className="mt-0 ">
                         {patientsResult.data.pageInfo.totalCount >
                           patientsResult.data.pageInfo.pageSize && (
                           <CustomPagination
+                            styles="m-0 p-0 rounded-0"
                             pageSize={patientsResult.data.pageInfo.pageSize}
                             totalCount={patientsResult.data.pageInfo.totalCount}
                             active={patientsPageNumber}
@@ -373,14 +379,19 @@ const SelectedClientTable = () => {
             </Accordion>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="secondary" onClick={closeModalView}>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                closeConfirmationModalView();
+              }}
+            >
               Cancel
             </Button>
             <Button
               variant="primary"
               onClick={() => {
                 sendNotificationToServer();
-                closeModalView();
+                closeConfirmationModalView();
               }}
             >
               Yes

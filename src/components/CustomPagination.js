@@ -6,6 +6,7 @@ const CustomPagination = ({
   pageSize,
   active,
   onSetActivePageNumber,
+  styles,
 }) => {
   let paginationItems = [];
 
@@ -23,7 +24,7 @@ const CustomPagination = ({
     );
   }
 
-  return <Pagination>{paginationItems}</Pagination>;
+  return <Pagination className={styles || ""}>{paginationItems}</Pagination>;
 };
 
 export default CustomPagination;
