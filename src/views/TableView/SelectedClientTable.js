@@ -169,6 +169,7 @@ const SelectedClientTable = () => {
   const closeConfirmationModalView = () => {
     toggleModalConfirmationView(false);
     toggleAccordionView(false);
+    setPatientsPageNumber(1);
   };
 
   const openResponseModalView = () => toggleResponseModalView(true);
