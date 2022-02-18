@@ -55,8 +55,6 @@ const usePatients = (
     keepPreviousData: true,
   };
 
-  console.log(queryOptions, "queryOptions");
-
   return useQuery(
     ["selectedPatients", activePageNumber],
     () => fetchPatients(activePageNumber),
