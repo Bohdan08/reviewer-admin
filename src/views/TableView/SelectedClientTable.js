@@ -210,7 +210,10 @@ const SelectedClientTable = () => {
   // patients
   const patientsResult = usePatients(patientsPageNumber, notificationId, {
     keepPreviousData: true,
-    enabled: false,
+    // execute only if accordion view is true
+    // enabled: accordionView
+    // enabled: false,
+    enabled: notificationId !== null,
   });
 
   return (
@@ -309,10 +312,6 @@ const SelectedClientTable = () => {
             <Accordion
               onClick={() => {
                 toggleAccordionView(!accordionView);
-
-                if (!accordionView) {
-                  patientsResult.refetch();
-                }
               }}
             >
               <Accordion.Item eventKey="0">
