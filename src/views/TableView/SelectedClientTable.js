@@ -1,5 +1,5 @@
 import { useAuth0 } from "@auth0/auth0-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Accordion,
   Alert,
@@ -39,10 +39,7 @@ const SelectedClientTable = () => {
   const [confirmationModalView, toggleModalConfirmationView] = useState(false);
   const [responseModalView, toggleResponseModalView] = useState(false);
   const [accordionView, toggleAccordionView] = useState(false);
-  const [notificationResponse, setNotificationResponse] = useState({
-    header: "",
-    message: "",
-  });
+
   const currentUname = location.pathname.split("/").pop();
 
   const clientsData = getClientsFromLocalStorage();
@@ -98,72 +95,27 @@ const SelectedClientTable = () => {
     return;
   };
 
-  async function sendNotificationToServer() {
-    const tokenAccess = await getAccessTokenSilently();
-    const userInfo = await getIdTokenClaims();
-
-    if (tokenAccess && userInfo) {
-      const options = {
-        method: "POST",
-        headers: {
-          Authorization: userInfo?.__raw,
-        },
-      };
-
-      fetch(
-        `${process.env.REACT_APP_BASE_URL}${PATIENTS_API}/${notificationId}/push`,
-        options
-      )
-        .then((res) => res.json())
-        .then((results) => {
-          const { status, message, error } = results;
-
-          if (status !== 200) {
-            openResponseModalView();
-            setNotificationResponse({
-              header: `${error}: ${status}`,
-              message,
-            });
-            return;
-          }
-
-          openResponseModalView();
-          setNotificationResponse({
-            status,
-            header: "The notification has been sent!",
-          });
-          return;
-        })
-        .catch(({ message }) => {
-          openResponseModalView();
-          setNotificationResponse({
-            message,
-          });
-          return;
-        });
-    } else {
-      setNotificationResponse({
-        header: "Couldn't get user's credentials",
-      });
-      return;
-    }
-  }
+  const notificationResult = useQuery(
+    "notificationQuery",
+    sendNotificationToServer,
+    { enabled: false }
+  );
 
   const onSetClientsPageNumber = (value) => setClientsPageNumber(value);
   const onSetPatientsPageNumber = (value) => setPatientsPageNumber(value);
 
-  const {
-    isFetching,
-    data: { data, pageInfo, message, header } = {},
-  } = useQuery(
-    ["selectedClient", clientsPageNumber, notificationResponse.status],
+  const clientsResult = useQuery(
+    ["selectedClient", clientsPageNumber],
     () => fetchLogs(clientsPageNumber),
     {
       keepPreviousData: true,
-      // The query won't be executed until notificationResponse is not equal 200
-      enabled: notificationResponse.status !== 200,
+      enabled: false,
     }
   );
+
+  useEffect(() => {
+    clientsResult.refetch();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const openModalConfirmationView = () => toggleModalConfirmationView(true);
   const closeConfirmationModalView = () => {
@@ -210,20 +162,81 @@ const SelectedClientTable = () => {
   // patients
   const patientsResult = usePatients(patientsPageNumber, notificationId, {
     keepPreviousData: true,
-    // execute only if accordion view is true
-    // enabled: accordionView
-    // enabled: false,
+    // execute only if notificationId is not null
     enabled: notificationId !== null,
   });
 
+  async function sendNotificationToServer() {
+    const tokenAccess = await getAccessTokenSilently();
+    const userInfo = await getIdTokenClaims();
+
+    if (tokenAccess && userInfo) {
+      const options = {
+        method: "POST",
+        headers: {
+          Authorization: userInfo?.__raw,
+        },
+      };
+
+      const response = await fetch(
+        `${process.env.REACT_APP_BASE_URL}${PATIENTS_API}/${notificationId}/push`,
+        options
+      )
+        .then((res) => res.json())
+        .then((results) => {
+          const { status, message, error } = results;
+
+          if (status !== 200) {
+            openResponseModalView();
+            return {
+              header: `${error}: ${status}`,
+              message,
+            };
+          }
+
+          openResponseModalView();
+          clientsResult.refetch();
+          return {
+            status,
+            header: "The notification has been sent!",
+          };
+        })
+        .catch(({ message }) => {
+          openResponseModalView();
+          return { message };
+        });
+      return response;
+    }
+    openResponseModalView();
+    return;
+  }
+
   return (
     <>
+      {notificationResult.isFetching ? (
+        <Modal
+          centered
+          show
+          contentClassName="bg-transparent border-0"
+          backdropClassName="opacity-75"
+        >
+          <Spinner
+            className="m-auto"
+            animation="border"
+            role="status"
+            variant="light"
+          />
+          <p className="m-auto mt-3 text-white fs-4">Sending Notification...</p>
+        </Modal>
+      ) : null}
       <div>
         <h2 className="text-center pb-2">
           {" "}
           {CLINIC_NAME_BY_UNAME[currentUname] || clinicName}{" "}
         </h2>{" "}
-        {!confirmationModalView && !responseModalView && isFetching ? (
+        {!confirmationModalView &&
+        !responseModalView &&
+        clientsResult.isFetching ? (
           <div className="mt-5 center-vertically-block">
             <Spinner
               className="d-flex m-auto"
@@ -232,7 +245,7 @@ const SelectedClientTable = () => {
             />
             <p className="pt-3">Loading...</p>
           </div>
-        ) : data?.length ? (
+        ) : clientsResult.data?.data?.length ? (
           <>
             <Table bordered hover responsive>
               <thead>
@@ -243,7 +256,7 @@ const SelectedClientTable = () => {
                 </tr>
               </thead>
               <tbody>
-                {data.map(
+                {clientsResult.data.data.map(
                   ({ id, s3key, status, uploadedAt, numNotificationsSent }) => (
                     <tr
                       key={id}
@@ -272,10 +285,11 @@ const SelectedClientTable = () => {
               </tbody>
             </Table>
             <div>
-              {pageInfo.totalCount > pageInfo.pageSize && (
+              {clientsResult.data.pageInfo.totalCount >
+                clientsResult.data.pageInfo.pageSize && (
                 <CustomPagination
-                  pageSize={pageInfo.pageSize}
-                  totalCount={pageInfo.totalCount}
+                  pageSize={clientsResult.data.pageInfo.pageSize}
+                  totalCount={clientsResult.data.pageInfo.totalCount}
                   active={clientsPageNumber}
                   onSetActivePageNumber={onSetClientsPageNumber}
                 />
@@ -287,11 +301,13 @@ const SelectedClientTable = () => {
             variant="danger"
             className="mt-5 m-auto w-50 text-center text-break"
           >
-            {header || message ? (
+            {clientsResult.data?.header || clientsResult.data?.message ? (
               <>
-                <b> {header}</b>
+                <b> {clientsResult.data.header}</b>
 
-                {message && <p className="mt-2">{message} </p>}
+                {clientsResult.data?.message && (
+                  <p className="mt-2">{clientsResult.data.message} </p>
+                )}
               </>
             ) : (
               "No Logs Found..."
@@ -312,12 +328,22 @@ const SelectedClientTable = () => {
             <Accordion
               onClick={() => {
                 toggleAccordionView(!accordionView);
+
+                if (!accordionView) {
+                  patientsResult.refetch();
+                }
               }}
             >
               <Accordion.Item eventKey="0">
-                <Accordion.Header>Check affected patients</Accordion.Header>
+                <Accordion.Header className="d-inline">
+                  Check affected patients with ID
+                  <span className="d-inline px-1 fw-bold">
+                    {" "}
+                    {notificationId}
+                  </span>
+                </Accordion.Header>
                 <Accordion.Body className="p-0">
-                  {isFetching ||
+                  {clientsResult.isFetching ||
                   patientsResult.isFetching ||
                   patientsResult.isLoading ? (
                     <div className="mt-2">
@@ -332,19 +358,21 @@ const SelectedClientTable = () => {
                     <>
                       <ListGroup className="rounded-0">
                         {patientsResult.data.data.map(
-                          ({ fname, lname, sendable }) =>
-                            sendable && (
-                              <ListGroup.Item key={`${fname} ${lname}`}>
-                                {`${fname} ${lname}`}
-                              </ListGroup.Item>
-                            )
+                          ({ fname, lname, sendable }) => (
+                            <ListGroup.Item
+                              key={`${fname} ${lname}`}
+                              variant={sendable ? "success" : "secondary"}
+                            >
+                              {`${fname} ${lname}`}
+                            </ListGroup.Item>
+                          )
                         )}
                       </ListGroup>
                       <div className="mt-0 ">
                         {patientsResult.data.pageInfo.totalCount >
                           patientsResult.data.pageInfo.pageSize && (
                           <CustomPagination
-                            styles="m-0 p-0 rounded-0"
+                            styles="m-0 p-0 rounded-0 modal-pagination"
                             pageSize={patientsResult.data.pageInfo.pageSize}
                             totalCount={patientsResult.data.pageInfo.totalCount}
                             active={patientsPageNumber}
@@ -390,7 +418,7 @@ const SelectedClientTable = () => {
             <Button
               variant="primary"
               onClick={() => {
-                sendNotificationToServer();
+                notificationResult.refetch();
                 closeConfirmationModalView();
               }}
             >
@@ -405,23 +433,25 @@ const SelectedClientTable = () => {
           onHide={closeResponseModalView}
           centered
         >
-          {notificationResponse.header && (
-            <Modal.Header closeButton>
-              <Modal.Title>{notificationResponse.header}</Modal.Title>
-            </Modal.Header>
-          )}
-          {notificationResponse.message && (
-            <Modal.Body>{notificationResponse.message}</Modal.Body>
+          <Modal.Header closeButton>
+            <Modal.Title>
+              {notificationResult.data?.header ||
+                "Couldn't get user's credentials"}
+            </Modal.Title>
+          </Modal.Header>
+
+          {notificationResult.data?.message && (
+            <Modal.Body>{notificationResult.data.message}</Modal.Body>
           )}
           <Modal.Footer>
             <Button
               variant="secondary"
               onClick={() => {
-                setNotificationResponse({
+                /* setNotificationResponse({
                   status: undefined,
                   header: "",
                   message: "",
-                });
+                }); */
                 closeResponseModalView();
               }}
             >
