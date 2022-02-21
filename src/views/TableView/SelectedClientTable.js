@@ -26,6 +26,7 @@ const TABLE_HEADERS = [
   "Status",
   "Uploaded",
   "Notifications Sent",
+  "Last Notification Time",
   "",
 ];
 
@@ -257,7 +258,14 @@ const SelectedClientTable = () => {
               </thead>
               <tbody>
                 {clientsResult.data.data.map(
-                  ({ id, s3key, status, uploadedAt, numNotificationsSent }) => (
+                  ({
+                    id,
+                    s3key,
+                    status,
+                    uploadedAt,
+                    lastPushTime,
+                    numNotificationsSent,
+                  }) => (
                     <tr
                       key={id}
                       className={status === "PENDING" ? " " : "cursor-pointer"}
@@ -275,6 +283,9 @@ const SelectedClientTable = () => {
                       </td>
                       <td className="text-capitalize">
                         {numNotificationsSent}
+                      </td>
+                      <td className="text-capitalize">
+                        {lastPushTime || "N/A"}
                       </td>
                       <td className="text-capitalize text-center">
                         {initiateNotification(id, numNotificationsSent)}
