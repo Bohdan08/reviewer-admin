@@ -288,7 +288,8 @@ const SelectedClientTable = () => {
                         {lastPushTime || "N/A"}
                       </td>
                       <td className="text-capitalize text-center">
-                        {initiateNotification(id, numNotificationsSent)}
+                        {status !== "PENDING" &&
+                          initiateNotification(id, numNotificationsSent)}
                       </td>
                     </tr>
                   )
