@@ -45,6 +45,7 @@ const SelectedClientTable = () => {
 
   const clientsData = getClientsFromLocalStorage();
 
+  console.log(clientsPageNumber, "clientsPageNumber");
   const currentClientId =
     clientsData?.length &&
     clientsData.filter(({ uname }) => currentUname === uname)[0]?.id;
@@ -103,6 +104,7 @@ const SelectedClientTable = () => {
   );
 
   const onSetClientsPageNumber = (value) => setClientsPageNumber(value);
+
   const onSetPatientsPageNumber = (value) => setPatientsPageNumber(value);
 
   const clientsResult = useQuery(
@@ -110,7 +112,7 @@ const SelectedClientTable = () => {
     () => fetchLogs(clientsPageNumber),
     {
       keepPreviousData: true,
-      enabled: false,
+      // enabled: false,
     }
   );
 
