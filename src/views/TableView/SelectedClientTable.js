@@ -45,7 +45,6 @@ const SelectedClientTable = () => {
 
   const clientsData = getClientsFromLocalStorage();
 
-  console.log(clientsPageNumber, "clientsPageNumber");
   const currentClientId =
     clientsData?.length &&
     clientsData.filter(({ uname }) => currentUname === uname)[0]?.id;
