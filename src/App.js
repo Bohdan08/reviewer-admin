@@ -10,24 +10,11 @@ import {
   Alert,
   Spinner,
 } from "react-bootstrap";
-import { CLIENTS_API } from "./constants";
+import { CLIENTS_API, NAV_ITEMS } from "./constants";
 import Page from "./navigation/Page";
 
 // assets
 import logo from "./assets/logo.png";
-
-const NAV_ITEMS = [
-  {
-    key: "uploadForm",
-    name: "Upload a File",
-    link: "/",
-  },
-  {
-    key: "customerTable",
-    name: "Clients",
-    link: "/clients",
-  },
-];
 
 const App = ({ routes }) => {
   const {

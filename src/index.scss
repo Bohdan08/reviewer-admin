@@ -52,3 +52,33 @@ button:disabled {
 .modal-pagination .page-link {
   border-radius: 0 !important;
 }
+
+.test-patient-form,
+.test-patient-info-alert-container {
+  width: 400px;
+  max-width: 100%;
+}
+
+.phone-label {
+  position: absolute;
+  margin-top: 7px;
+  margin-left: 10px;
+}
+
+.phone-error-label {
+  color: red;
+}
+
+.phone-input {
+  padding-left: 35px;
+}
+
+.phone-input-error {
+  border: 1px solid red;
+
+  &:focus,
+  &:hover {
+    box-shadow: 0 0 0 0.1rem red;
+    border-color: red;
+  }
+}

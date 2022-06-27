@@ -3,6 +3,7 @@ import {
   ClientsTable,
   SelectedClientTable,
   SelectedPatiensTable,
+  TestPatient
 } from "../views";
 
 const routes = [
@@ -25,6 +26,11 @@ const routes = [
         ],
       },
     ],
+  },
+  {
+    path: "/test-patient",
+    label: "Test a Patient",
+    Component: TestPatient,
   },
 ];
 

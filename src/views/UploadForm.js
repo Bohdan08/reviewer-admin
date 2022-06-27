@@ -1,8 +1,7 @@
-import React, { useState } from "react";
-import AWS from "aws-sdk";
+import React, { useState, useRef } from "react";
 import { Container, Form, Button, Alert, Spinner } from "react-bootstrap";
+import AWS from "aws-sdk";
 import { API_STATUS } from "../constants";
-import { useRef } from "react";
 
 AWS.config.update({
   credentials: new AWS.CognitoIdentityCredentials({
@@ -14,7 +13,6 @@ AWS.config.update({
 const generateCurrentDate = () =>
   new Date().toISOString().replace("T", "").replace(/\D/g, "").substr(0, 14);
 
-  
 const UploadForm = ({ clientsInfo }) => {
   const inputFileRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
