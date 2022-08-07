@@ -10,6 +10,7 @@ const TABLE_HEADERS = [
   "Phone",
   "Status",
   "Last Visit",
+  "Rating",
   "Attempts",
 ];
 
@@ -55,6 +56,7 @@ const SelectedPatiensTable = () => {
                   phone,
                   status,
                   lastVisitedOn,
+                  visits = [],
                   attempts,
                 }) => (
                   <tr key={id}>
@@ -66,6 +68,11 @@ const SelectedPatiensTable = () => {
                     <td className="text-capitalize">{status}</td>
                     <td className="text-capitalize">
                       {lastVisitedOn ? lastVisitedOn.slice(0, 10) : "N/A"}
+                    </td>
+                    <td className="text-capitalize">
+                      {visits[0] && visits[0].review
+                        ? visits[0].review.rating
+                        : "N/A"}
                     </td>
                     <td className="text-capitalize">{attempts || "N/A"}</td>
                   </tr>
