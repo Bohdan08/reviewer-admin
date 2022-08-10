@@ -11,6 +11,7 @@ const TABLE_HEADERS = [
   "Status",
   "Last Visit",
   "Rating",
+  "Message",
   "Attempts",
 ];
 
@@ -18,7 +19,18 @@ const SelectedPatiensTable = () => {
   const location = useLocation();
   const [activePageNumber, setActivePageNumber] = useState(1);
 
-  const selectedPatientsId = location.pathname.split("/").pop();
+  const lastUrlPiece = location.pathname.split("/").pop();
+
+  const selectedPatientsId = lastUrlPiece.split("-")[1];
+  const selectedPatientsType = lastUrlPiece.split("-")[0];
+
+  const adjustedTableHeaders = TABLE_HEADERS.filter(
+    (headerName) =>
+      (selectedPatientsType === "direct" &&
+        headerName !== "Rating" &&
+        headerName !== "Message") ||
+      selectedPatientsType !== "direct"
+  );
 
   const {
     isFetching,
@@ -31,7 +43,9 @@ const SelectedPatiensTable = () => {
   return (
     <div>
       {" "}
-      <h2 className="text-center pb-2">Patients</h2>{" "}
+      <h2 className="text-center pb-2">
+        Patients ({`${selectedPatientsType}`})
+      </h2>{" "}
       {isLoading || isFetching ? (
         <div className="mt-5 center-vertically-block">
           <Spinner className="d-flex m-auto" animation="border" role="status" />
@@ -42,7 +56,7 @@ const SelectedPatiensTable = () => {
           <Table bordered>
             <thead>
               <tr>
-                {TABLE_HEADERS.map((headerName) => (
+                {adjustedTableHeaders.map((headerName) => (
                   <th key={headerName}> {headerName}</th>
                 ))}
               </tr>
@@ -69,11 +83,22 @@ const SelectedPatiensTable = () => {
                     <td className="text-capitalize">
                       {lastVisitedOn ? lastVisitedOn.slice(0, 10) : "N/A"}
                     </td>
-                    <td className="text-capitalize">
-                      {visits[0] && visits[0].review
-                        ? visits[0].review.rating
-                        : "N/A"}
-                    </td>
+                    {selectedPatientsType !== "direct" ? (
+                      <td className="text-capitalize">
+                        {visits[0] && visits[0].review
+                          ? visits[0].review.rating
+                          : "N/A"}
+                      </td>
+                    ) : null}
+                    {selectedPatientsType !== "direct" ? (
+                      <td className="text-capitalize">
+                        {visits[0] &&
+                        visits[0].review &&
+                        visits[0].review.message
+                          ? visits[0].review.message
+                          : "N/A"}
+                      </td>
+                    ) : null}
                     <td className="text-capitalize">{attempts || "N/A"}</td>
                   </tr>
                 )

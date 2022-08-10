@@ -271,8 +271,11 @@ const SelectedClientTable = () => {
                       key={id}
                       className={status === "PENDING" ? " " : "cursor-pointer"}
                       onClick={(event) => {
+                        const isDirect = s3key.toLowerCase().includes("direct");
+                        const patientsType = isDirect ? "direct" : "import";
+
                         if (status !== "PENDING" && event.target.value !== "") {
-                          navigate(`${id}`);
+                          navigate(`${patientsType}-${id}`);
                         }
                       }}
                     >
